@@ -1,0 +1,21 @@
+node_modules/
+.next/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.vscode/
+
+# Laravel
+vendor/
+public/storage
+storage/*.key
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+database/database.sqlite
+.env.testing
