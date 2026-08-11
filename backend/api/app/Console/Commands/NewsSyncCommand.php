@@ -14,7 +14,7 @@ class NewsSyncCommand extends Command
         $this->info('Starting News Sync...');
         
         $feeds = [
-            ['url' => 'https://kathmandupost.com/feed', 'lang' => 'en'],
+            ['url' => 'https://techlekh.com/feed/', 'lang' => 'en'],
             // Note: OnlineKhabar feed often changes, using standard format
             ['url' => 'https://www.onlinekhabar.com/feed', 'lang' => 'np'],
         ];
@@ -36,7 +36,12 @@ class NewsSyncCommand extends Command
         foreach ($feeds as $feed) {
             $this->info("Fetching: {$feed['url']}");
             try {
-                $content = file_get_contents($feed['url']);
+                $context = stream_context_create([
+                    'http' => [
+                        'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
+                    ]
+                ]);
+                $content = file_get_contents($feed['url'], false, $context);
                 // Fix unescaped ampersands which break simplexml
                 $content = preg_replace('/&(?!#?[a-z0-9]+;)/', '&amp;', $content);
                 
