@@ -23,6 +23,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/categories/{id}', [\App\Http\Controllers\Api\CategoryController::class, 'update']);
     Route::delete('/categories/{id}', [\App\Http\Controllers\Api\CategoryController::class, 'destroy']);
 
+    Route::get('/rss-feeds', [\App\Http\Controllers\Api\RssFeedController::class, 'index']);
+    Route::post('/rss-feeds', [\App\Http\Controllers\Api\RssFeedController::class, 'store']);
+    Route::put('/rss-feeds/{id}', [\App\Http\Controllers\Api\RssFeedController::class, 'update']);
+    Route::delete('/rss-feeds/{id}', [\App\Http\Controllers\Api\RssFeedController::class, 'destroy']);
+
     Route::get('/media', [\App\Http\Controllers\Api\MediaController::class, 'index']);
     Route::post('/media/upload', [\App\Http\Controllers\Api\MediaController::class, 'upload']);
     

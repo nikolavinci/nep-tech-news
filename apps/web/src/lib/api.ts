@@ -54,6 +54,69 @@ export async function fetchArticles(page: number = 1, limit: number = 12, q?: st
   }
 }
 
+export async function updateCategory(id: number, data: { slug?: string; name_en?: string; name_np?: string }) {
+  const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update category');
+  return res.json();
+}
+
+export async function deleteCategory(id: number) {
+  const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete category');
+  return res.json();
+}
+
+// --- RSS Feeds API ---
+export interface RssFeed {
+  id: number;
+  name: string;
+  url: string;
+  lang: string;
+  category_id: number;
+  is_active: boolean;
+  category?: Category;
+}
+
+export async function fetchRssFeeds(): Promise<RssFeed[]> {
+  const res = await fetch(`${API_BASE_URL}/rss-feeds`, { next: { revalidate: 0 } });
+  if (!res.ok) throw new Error('Failed to fetch RSS feeds');
+  return res.json();
+}
+
+export async function createRssFeed(data: Partial<RssFeed>) {
+  const res = await fetch(`${API_BASE_URL}/rss-feeds`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to create RSS feed');
+  return res.json();
+}
+
+export async function updateRssFeed(id: number, data: Partial<RssFeed>) {
+  const res = await fetch(`${API_BASE_URL}/rss-feeds/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update RSS feed');
+  return res.json();
+}
+
+export async function deleteRssFeed(id: number) {
+  const res = await fetch(`${API_BASE_URL}/rss-feeds/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete RSS feed');
+  return res.json();
+}
+
 export async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/categories`, { 

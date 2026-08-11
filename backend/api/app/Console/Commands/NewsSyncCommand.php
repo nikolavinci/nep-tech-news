@@ -13,25 +13,12 @@ class NewsSyncCommand extends Command
     {
         $this->info('Starting News Sync...');
         
-        $feeds = [
-            // International (High Quality Fallbacks)
-            ['url' => 'http://feeds.bbci.co.uk/news/technology/rss.xml', 'lang' => 'en', 'cat' => 'technology'],
-            ['url' => 'http://feeds.bbci.co.uk/news/business/rss.xml', 'lang' => 'en', 'cat' => 'business'],
-            ['url' => 'http://feeds.bbci.co.uk/news/world/rss.xml', 'lang' => 'en', 'cat' => 'world'],
-            ['url' => 'http://feeds.bbci.co.uk/sport/rss.xml', 'lang' => 'en', 'cat' => 'sports'],
-            
-            // Nepal National
-            ['url' => 'https://www.onlinekhabar.com/feed', 'lang' => 'np', 'cat' => 'national'],
-            ['url' => 'https://english.onlinekhabar.com/feed', 'lang' => 'en', 'cat' => 'national'],
-            ['url' => 'https://nagariknews.nagariknetwork.com/feed', 'lang' => 'np', 'cat' => 'national'],
-            ['url' => 'https://www.ratopati.com/feed', 'lang' => 'np', 'cat' => 'national'],
-            ['url' => 'https://www.telegraphnepal.com/feed/', 'lang' => 'en', 'cat' => 'national'],
-            ['url' => 'https://www.thehimalayantimes.com/rss', 'lang' => 'en', 'cat' => 'national'],
-            
-            // Nepal Business & Tech
-            ['url' => 'https://arthasarokar.com/feed', 'lang' => 'np', 'cat' => 'business'],
-            ['url' => 'https://techmandu.com/feed/', 'lang' => 'en', 'cat' => 'technology'],
-        ];
+        $feeds = \App\Models\RssFeed::with('category')->where('is_active', true)->get();
+
+        if ($feeds->isEmpty()) {
+            $this->warn('No active RSS feeds found in the database. Please add some via the admin dashboard.');
+            return;
+        }
 
         $superAdmin = \App\Models\User::where('role', 'super_admin')->first();
         if (!$superAdmin) {
@@ -40,14 +27,14 @@ class NewsSyncCommand extends Command
         }
 
         foreach ($feeds as $feed) {
-            $this->info("Fetching: {$feed['url']}");
+            $this->info("Fetching: {$feed->url}");
             try {
                 $context = stream_context_create([
                     'http' => [
                         'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
                     ]
                 ]);
-                $content = file_get_contents($feed['url'], false, $context);
+                $content = file_get_contents($feed->url, false, $context);
                 
                 // Fix unescaped ampersands which break simplexml
                 $content = preg_replace('/&(?!#?[a-z0-9]+;)/', '&amp;', $content);
@@ -64,11 +51,6 @@ class NewsSyncCommand extends Command
                 
                 if (!isset($xml->channel->item)) continue;
 
-                $category = \App\Models\Category::firstOrCreate(
-                    ['slug' => $feed['cat']],
-                    ['name_en' => ucfirst($feed['cat']), 'name_np' => ucfirst($feed['cat'])]
-                );
-                
                 $count = 0;
                 foreach ($xml->channel->item as $item) {
                     if ($count >= 10) break; // Fetch up to 10 per feed
@@ -114,13 +96,13 @@ class NewsSyncCommand extends Command
                     $articleData = [
                         'slug' => $slug,
                         'author_id' => $superAdmin->id,
-                        'category_id' => $category->id,
+                        'category_id' => $feed->category_id,
                         'status' => 'published',
                         'published_at' => now(),
-                        'title_en' => $feed['lang'] === 'en' ? $title : $title, // Fallback if translation fails
-                        'body_en' => $feed['lang'] === 'en' ? $body : $body,
-                        'title_np' => $feed['lang'] === 'np' ? $title : $title,
-                        'body_np' => $feed['lang'] === 'np' ? $body : $body,
+                        'title_en' => $feed->lang === 'en' ? $title : $title,
+                        'body_en' => $feed->lang === 'en' ? $body : $body,
+                        'title_np' => $feed->lang === 'np' ? $title : $title,
+                        'body_np' => $feed->lang === 'np' ? $body : $body,
                         'featured_image' => $imageUrl,
                     ];
 

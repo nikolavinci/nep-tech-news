@@ -40,6 +40,9 @@ export default async function AdminLayout({
           <Link href={`/${lang}/admin/categories`} className="block px-4 py-2 rounded-md hover:bg-muted font-medium transition-colors">
             Categories
           </Link>
+          <Link href={`/${lang}/admin/feeds`} className="block px-4 py-2 rounded-md hover:bg-muted font-medium transition-colors">
+            RSS Feeds
+          </Link>
           <Link href={`/${lang}/admin/media`} className="block px-4 py-2 rounded-md hover:bg-muted font-medium transition-colors">
             Media Library
           </Link>
