@@ -53,7 +53,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <Link href={`/${lang}/news/${mainLead.slug}`} className="group">
               <div className="aspect-[21/9] bg-muted overflow-hidden relative border-b-4 border-primary">
                 <img 
-                  src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=2000&auto=format&fit=crop" 
+                  src={mainLead.featured_image ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${mainLead.featured_image}` : "https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=2000&auto=format&fit=crop"} 
                   alt="Main Lead Story" 
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
                 />
@@ -76,7 +76,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <Link href={`/${lang}/news/${item.slug}`} key={item.id} className="group flex flex-col gap-3">
                 <div className="aspect-video bg-muted overflow-hidden">
                   <img 
-                    src={`https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=600&auto=format&fit=crop&sig=${idx}`} 
+                    src={item.featured_image ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${item.featured_image}` : `https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=600&auto=format&fit=crop&sig=${idx}`} 
                     alt="Sub Lead" 
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                   />
