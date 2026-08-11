@@ -26,6 +26,7 @@ class NewsSyncCommand extends Command
             ['url' => 'https://nagariknews.nagariknetwork.com/feed', 'lang' => 'np', 'cat' => 'national'],
             ['url' => 'https://www.ratopati.com/feed', 'lang' => 'np', 'cat' => 'national'],
             ['url' => 'https://www.telegraphnepal.com/feed/', 'lang' => 'en', 'cat' => 'national'],
+            ['url' => 'https://www.thehimalayantimes.com/rss', 'lang' => 'en', 'cat' => 'national'],
             
             // Nepal Business & Tech
             ['url' => 'https://arthasarokar.com/feed', 'lang' => 'np', 'cat' => 'business'],
