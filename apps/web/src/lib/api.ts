@@ -31,7 +31,14 @@ export interface Article {
   author: Author;
 }
 
-export async function fetchArticles(page: number = 1, limit: number = 12, q?: string): Promise<{ data: Article[] }> {
+export interface PaginatedArticles {
+  data: Article[];
+  current_page: number;
+  last_page: number;
+  total: number;
+}
+
+export async function fetchArticles(page: number = 1, limit: number = 12, q?: string): Promise<PaginatedArticles> {
   try {
     let url = `${API_BASE_URL}/articles?page=${page}&limit=${limit}`;
     if (q) url += `&q=${encodeURIComponent(q)}`;
@@ -43,7 +50,7 @@ export async function fetchArticles(page: number = 1, limit: number = 12, q?: st
     return res.json();
   } catch (error) {
     console.error('Error fetching articles:', error);
-    return { data: [] };
+    return { data: [], current_page: 1, last_page: 1, total: 0 };
   }
 }
 
