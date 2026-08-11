@@ -64,12 +64,21 @@ class NewsSyncCommand extends Command
                     $count++;
 
                     $title = (string) $item->title;
+                    
+                    // Try to get full content if available, fallback to description
+                    $namespaces = $item->getNamespaces(true);
                     $body = (string) $item->description;
+                    if (isset($namespaces['content'])) {
+                        $contentNamespace = $item->children($namespaces['content']);
+                        if (isset($contentNamespace->encoded) && !empty((string) $contentNamespace->encoded)) {
+                            $body = (string) $contentNamespace->encoded;
+                        }
+                    }
+                    
                     $slug = \Illuminate\Support\Str::slug($title);
 
                     // Extract image from standard media:content, enclosure, or media:thumbnail
                     $imageUrl = null;
-                    $namespaces = $item->getNamespaces(true);
                     
                     if (isset($namespaces['media'])) {
                         $media = $item->children($namespaces['media']);
