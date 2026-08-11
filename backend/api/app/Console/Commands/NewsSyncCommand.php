@@ -14,7 +14,7 @@ class NewsSyncCommand extends Command
         $this->info('Starting News Sync...');
         
         $feeds = [
-            ['url' => 'https://techlekh.com/feed/', 'lang' => 'en'],
+            ['url' => 'http://feeds.bbci.co.uk/news/technology/rss.xml', 'lang' => 'en'],
             // Note: OnlineKhabar feed often changes, using standard format
             ['url' => 'https://www.onlinekhabar.com/feed', 'lang' => 'np'],
         ];
