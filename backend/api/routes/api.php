@@ -19,6 +19,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/articles/{id}', [\App\Http\Controllers\Api\ArticleController::class, 'update']);
     Route::delete('/articles/{id}', [\App\Http\Controllers\Api\ArticleController::class, 'destroy']);
 
+    Route::post('/categories', [\App\Http\Controllers\Api\CategoryController::class, 'store']);
+    Route::put('/categories/{id}', [\App\Http\Controllers\Api\CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [\App\Http\Controllers\Api\CategoryController::class, 'destroy']);
+
     Route::get('/media', [\App\Http\Controllers\Api\MediaController::class, 'index']);
     Route::post('/media/upload', [\App\Http\Controllers\Api\MediaController::class, 'upload']);
     
