@@ -60,7 +60,7 @@ class NewsSyncCommand extends Command
                 
                 $count = 0;
                 foreach ($xml->channel->item as $item) {
-                    if ($count >= 6) break; // Fetch up to 6 per feed
+                    if ($count >= 10) break; // Fetch up to 10 per feed
                     $count++;
 
                     $title = (string) $item->title;
