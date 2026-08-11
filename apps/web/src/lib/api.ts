@@ -22,6 +22,11 @@ export interface Article {
   body_np: string;
   status: string;
   published_at: string;
+  created_at: string;
+  updated_at: string;
+  featured_image?: string | null;
+  category_id?: number;
+  author_id?: number;
   category: Category;
   author: Author;
 }
