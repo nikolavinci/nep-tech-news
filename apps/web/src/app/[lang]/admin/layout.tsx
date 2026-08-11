@@ -44,9 +44,14 @@ export default async function AdminLayout({
             Media Library
           </Link>
           {role === 'super_admin' && (
-            <Link href={`/${lang}/admin/users`} className="block px-4 py-2 rounded-md hover:bg-muted font-medium transition-colors">
-              Users
-            </Link>
+            <>
+              <Link href={`/${lang}/admin/users`} className="block px-4 py-2 rounded-md hover:bg-muted font-medium transition-colors">
+                Users
+              </Link>
+              <Link href={`/${lang}/admin/settings`} className="block px-4 py-2 rounded-md hover:bg-muted font-medium transition-colors">
+                Settings (AI)
+              </Link>
+            </>
           )}
         </nav>
         <div className="p-4 border-t">

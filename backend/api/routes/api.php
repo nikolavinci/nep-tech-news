@@ -21,6 +21,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/media', [\App\Http\Controllers\Api\MediaController::class, 'index']);
     Route::post('/media/upload', [\App\Http\Controllers\Api\MediaController::class, 'upload']);
+    
+    // Settings (Superadmin only)
+    Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index']);
+    Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'store']);
 
     Route::get('/analytics/dashboard', [\App\Http\Controllers\Api\AnalyticsController::class, 'dashboard']);
 });
