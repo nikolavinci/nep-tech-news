@@ -14,12 +14,22 @@ class NewsSyncCommand extends Command
         $this->info('Starting News Sync...');
         
         $feeds = [
+            // International (High Quality Fallbacks)
             ['url' => 'http://feeds.bbci.co.uk/news/technology/rss.xml', 'lang' => 'en', 'cat' => 'technology'],
             ['url' => 'http://feeds.bbci.co.uk/news/business/rss.xml', 'lang' => 'en', 'cat' => 'business'],
             ['url' => 'http://feeds.bbci.co.uk/news/world/rss.xml', 'lang' => 'en', 'cat' => 'world'],
             ['url' => 'http://feeds.bbci.co.uk/sport/rss.xml', 'lang' => 'en', 'cat' => 'sports'],
+            
+            // Nepal National
             ['url' => 'https://www.onlinekhabar.com/feed', 'lang' => 'np', 'cat' => 'national'],
             ['url' => 'https://english.onlinekhabar.com/feed', 'lang' => 'en', 'cat' => 'national'],
+            ['url' => 'https://nagariknews.nagariknetwork.com/feed', 'lang' => 'np', 'cat' => 'national'],
+            ['url' => 'https://www.ratopati.com/feed', 'lang' => 'np', 'cat' => 'national'],
+            ['url' => 'https://www.telegraphnepal.com/feed/', 'lang' => 'en', 'cat' => 'national'],
+            
+            // Nepal Business & Tech
+            ['url' => 'https://arthasarokar.com/feed', 'lang' => 'np', 'cat' => 'business'],
+            ['url' => 'https://techmandu.com/feed/', 'lang' => 'en', 'cat' => 'technology'],
         ];
 
         $superAdmin = \App\Models\User::where('role', 'super_admin')->first();
