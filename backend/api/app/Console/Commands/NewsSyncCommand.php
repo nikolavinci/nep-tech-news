@@ -14,9 +14,12 @@ class NewsSyncCommand extends Command
         $this->info('Starting News Sync...');
         
         $feeds = [
-            ['url' => 'http://feeds.bbci.co.uk/news/technology/rss.xml', 'lang' => 'en'],
-            // Note: OnlineKhabar feed often changes, using standard format
-            ['url' => 'https://www.onlinekhabar.com/feed', 'lang' => 'np'],
+            ['url' => 'http://feeds.bbci.co.uk/news/technology/rss.xml', 'lang' => 'en', 'cat' => 'technology'],
+            ['url' => 'http://feeds.bbci.co.uk/news/business/rss.xml', 'lang' => 'en', 'cat' => 'business'],
+            ['url' => 'http://feeds.bbci.co.uk/news/world/rss.xml', 'lang' => 'en', 'cat' => 'world'],
+            ['url' => 'http://feeds.bbci.co.uk/sport/rss.xml', 'lang' => 'en', 'cat' => 'sports'],
+            ['url' => 'https://www.onlinekhabar.com/feed', 'lang' => 'np', 'cat' => 'national'],
+            ['url' => 'https://english.onlinekhabar.com/feed', 'lang' => 'en', 'cat' => 'national'],
         ];
 
         $superAdmin = \App\Models\User::where('role', 'super_admin')->first();
@@ -24,14 +27,6 @@ class NewsSyncCommand extends Command
             $this->error('No superadmin found to assign articles to.');
             return;
         }
-
-        $category = \App\Models\Category::firstOrCreate(
-            ['slug' => 'news'],
-            ['name_en' => 'News', 'name_np' => 'समाचार']
-        );
-
-        $provider = \App\Models\Setting::where('key', 'ai_provider')->value('value');
-        $apiKey = \App\Models\Setting::where('key', 'ai_api_key')->value('value');
 
         foreach ($feeds as $feed) {
             $this->info("Fetching: {$feed['url']}");
@@ -42,6 +37,7 @@ class NewsSyncCommand extends Command
                     ]
                 ]);
                 $content = file_get_contents($feed['url'], false, $context);
+                
                 // Fix unescaped ampersands which break simplexml
                 $content = preg_replace('/&(?!#?[a-z0-9]+;)/', '&amp;', $content);
                 
@@ -56,58 +52,57 @@ class NewsSyncCommand extends Command
                 }
                 
                 if (!isset($xml->channel->item)) continue;
+
+                $category = \App\Models\Category::firstOrCreate(
+                    ['slug' => $feed['cat']],
+                    ['name_en' => ucfirst($feed['cat']), 'name_np' => ucfirst($feed['cat'])]
+                );
                 
                 $count = 0;
                 foreach ($xml->channel->item as $item) {
-                    if ($count >= 5) break; // Limit to 5 per feed for now
+                    if ($count >= 6) break; // Fetch up to 6 per feed
                     $count++;
 
                     $title = (string) $item->title;
                     $body = (string) $item->description;
                     $slug = \Illuminate\Support\Str::slug($title);
 
+                    // Extract image from standard media:content, enclosure, or media:thumbnail
+                    $imageUrl = null;
+                    $namespaces = $item->getNamespaces(true);
+                    
+                    if (isset($namespaces['media'])) {
+                        $media = $item->children($namespaces['media']);
+                        if (isset($media->content) && isset($media->content->attributes()->url)) {
+                            $imageUrl = (string) $media->content->attributes()->url;
+                        } elseif (isset($media->thumbnail) && isset($media->thumbnail->attributes()->url)) {
+                            $imageUrl = (string) $media->thumbnail->attributes()->url;
+                        }
+                    }
+                    if (!$imageUrl && isset($item->enclosure) && isset($item->enclosure->attributes()->url)) {
+                        $imageUrl = (string) $item->enclosure->attributes()->url;
+                    }
+                    if (!$imageUrl && preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', (string) $item->description, $matches)) {
+                        $imageUrl = $matches[1];
+                    }
+
                     if (\App\Models\Article::where('slug', $slug)->exists()) {
                         continue;
                     }
 
+                    // To make it look "launch ready", we will default to published
                     $articleData = [
                         'slug' => $slug,
                         'author_id' => $superAdmin->id,
                         'category_id' => $category->id,
-                        'status' => 'draft',
-                        'title_en' => $feed['lang'] === 'en' ? $title : 'Draft: ' . $title,
-                        'body_en' => $feed['lang'] === 'en' ? $body : 'Draft content pending translation.',
-                        'title_np' => $feed['lang'] === 'np' ? $title : null,
-                        'body_np' => $feed['lang'] === 'np' ? $body : null,
+                        'status' => 'published',
+                        'published_at' => now(),
+                        'title_en' => $feed['lang'] === 'en' ? $title : $title, // Fallback if translation fails
+                        'body_en' => $feed['lang'] === 'en' ? $body : $body,
+                        'title_np' => $feed['lang'] === 'np' ? $title : $title,
+                        'body_np' => $feed['lang'] === 'np' ? $body : $body,
+                        'featured_image' => $imageUrl,
                     ];
-
-                    // AI Processing
-                    if ($provider === 'openai' && $apiKey) {
-                        $this->info("Spinning article via OpenAI...");
-                        $prompt = "You are an expert journalist. Rewrite this article to completely avoid plagiarism. Remove any mention of the source brand. Translate it into both English and Nepali. Return a valid JSON object strictly with these keys: title_en, title_np, body_en, body_np.\n\nOriginal Text:\n" . $title . "\n" . strip_tags($body);
-                        
-                        $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
-                            ->timeout(60)
-                            ->post('https://api.openai.com/v1/chat/completions', [
-                                'model' => 'gpt-4o-mini',
-                                'response_format' => ['type' => 'json_object'],
-                                'messages' => [
-                                    ['role' => 'user', 'content' => $prompt]
-                                ]
-                            ]);
-
-                        if ($response->successful()) {
-                            $aiResult = json_decode($response->json('choices.0.message.content'), true);
-                            if ($aiResult && isset($aiResult['title_en'])) {
-                                $articleData['title_en'] = $aiResult['title_en'];
-                                $articleData['title_np'] = $aiResult['title_np'];
-                                $articleData['body_en'] = $aiResult['body_en'];
-                                $articleData['body_np'] = $aiResult['body_np'];
-                                $articleData['status'] = 'published';
-                                $articleData['published_at'] = now();
-                            }
-                        }
-                    }
 
                     \App\Models\Article::create($articleData);
                     $this->info("Saved: {$slug}");

@@ -28,10 +28,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const sportsNews = articles.slice(0, 2);
 
   const getImageUrl = (article: any, fallbackStr: string) => {
-    if (!article) return fallbackStr;
-    return article.featured_image 
-      ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${article.featured_image}` 
-      : fallbackStr;
+    if (!article || !article.featured_image) return fallbackStr;
+    if (article.featured_image.startsWith('http')) return article.featured_image;
+    return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${article.featured_image}`;
   };
 
   const getTitle = (article: any) => {
