@@ -10,7 +10,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const isEn = lang === 'en';
 
   // Fetch real articles from Laravel API
-  const { data: articles } = await fetchArticles(1, 24); // Fetch more for the homepage
+  const { data: articles } = await fetchArticles(1, 40); // Fetch enough for all grids and web stories
   
   // Safe fallbacks for sections
   const mainLead = articles[0];
@@ -27,8 +27,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const sportsLead = articles[23] || articles[2];
   const sportsNews = articles.slice(0, 2);
 
-  const getImageUrl = (article: any, fallbackStr: string) => {
-    if (!article || !article.featured_image) return fallbackStr;
+  const storyArticles = articles.slice(24, 32);
+
+  const getImageUrl = (article: any) => {
+    if (!article || !article.featured_image) return 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
     if (article.featured_image.startsWith('http')) return article.featured_image;
     return `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${article.featured_image}`;
   };
@@ -77,9 +79,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <Link href={`/${lang}/news/${mainLead.slug}`} className="group">
               <div className="aspect-[21/9] bg-muted overflow-hidden relative border-b-4 border-primary">
                 <img 
-                  src={getImageUrl(mainLead, "https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=2000&auto=format&fit=crop")} 
+                  src={getImageUrl(mainLead)} 
                   alt={getTitle(mainLead)} 
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 bg-muted"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded text-white max-w-4xl">
@@ -104,9 +106,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <Link href={`/${lang}/news/${item.slug}`} key={item.id} className="group flex flex-col gap-3">
                 <div className="aspect-video bg-muted overflow-hidden">
                   <img 
-                    src={getImageUrl(item, `https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=600&auto=format&fit=crop&sig=${idx}`)} 
+                    src={getImageUrl(item)} 
                     alt={getTitle(item)} 
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 bg-muted"
                   />
                 </div>
                 <div>
@@ -167,7 +169,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       </div>
 
       {/* Web Stories */}
-      <WebStories lang={lang} />
+      <WebStories lang={lang} articles={storyArticles} />
 
       <Separator className="my-8 h-[2px] bg-primary/20" />
 
@@ -190,9 +192,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 <Link href={item ? `/${lang}/news/${item.slug}` : '#'}>
                   <div className="aspect-video bg-muted overflow-hidden mb-3">
                     <img 
-                      src={getImageUrl(item, `https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?q=80&w=600&auto=format&fit=crop&sig=${idx}`)} 
-                      alt="Politics" 
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                      src={getImageUrl(item)} 
+                      alt={getTitle(item)} 
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 bg-muted"
                     />
                   </div>
                   <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors line-clamp-3">
@@ -234,7 +236,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             {businessLead && (
               <Link href={`/${lang}/news/${businessLead.slug}`} className="group col-span-1 sm:col-span-2 md:col-span-1">
                 <div className="aspect-[4/3] bg-muted overflow-hidden mb-3">
-                  <img src={getImageUrl(businessLead, "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=800&auto=format&fit=crop")} alt="Business" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                  <img src={getImageUrl(businessLead)} alt="Business" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 bg-muted" />
                 </div>
                 <h3 className="font-bold text-2xl leading-snug group-hover:text-blue-600 transition-colors">
                   {getTitle(businessLead)}
@@ -250,7 +252,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               {businessNews.map((item, idx) => (
                 <Link href={item ? `/${lang}/news/${item.slug}` : '#'} key={idx} className="group flex gap-4">
                   <div className="w-1/3 aspect-video bg-muted overflow-hidden flex-shrink-0">
-                    <img src={getImageUrl(item, `https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?q=80&w=400&auto=format&fit=crop&sig=${idx}`)} alt="Business Mini" className="object-cover w-full h-full group-hover:scale-110 transition-transform" />
+                    <img src={getImageUrl(item)} alt="Business Mini" className="object-cover w-full h-full group-hover:scale-110 transition-transform bg-muted" />
                   </div>
                   <h4 className="font-bold leading-tight group-hover:text-blue-600 transition-colors line-clamp-3">
                     {getTitle(item)}
@@ -274,7 +276,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             {techLead && (
               <Link href={`/${lang}/news/${techLead.slug}`} className="group border-b pb-6">
                 <div className="aspect-video bg-muted overflow-hidden mb-3">
-                  <img src={getImageUrl(techLead, "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop")} alt="Tech" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                  <img src={getImageUrl(techLead)} alt="Tech" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 bg-muted" />
                 </div>
                 <h3 className="font-bold text-xl leading-snug group-hover:text-purple-600 transition-colors">
                   {getTitle(techLead)}
@@ -285,7 +287,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             {techNews.map((item, idx) => (
               <Link href={item ? `/${lang}/news/${item.slug}` : '#'} key={idx} className="group flex gap-4">
                 <div className="w-1/4 aspect-square bg-muted overflow-hidden flex-shrink-0">
-                  <img src={getImageUrl(item, `https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop&sig=${idx}`)} alt="Tech Mini" className="object-cover w-full h-full group-hover:scale-110 transition-transform" />
+                  <img src={getImageUrl(item)} alt="Tech Mini" className="object-cover w-full h-full group-hover:scale-110 transition-transform bg-muted" />
                 </div>
                 <h4 className="font-bold leading-tight group-hover:text-purple-600 transition-colors line-clamp-3">
                   {getTitle(item)}

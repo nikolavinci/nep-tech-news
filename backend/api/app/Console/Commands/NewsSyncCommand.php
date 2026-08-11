@@ -88,6 +88,35 @@ class NewsSyncCommand extends Command
                         $imageUrl = $matches[1];
                     }
 
+                    $localImagePath = null;
+                    if ($imageUrl) {
+                        try {
+                            $imageContext = stream_context_create([
+                                'http' => ['header' => "User-Agent: Mozilla/5.0\r\n"]
+                            ]);
+                            $imageContent = file_get_contents($imageUrl, false, $imageContext);
+                            if ($imageContent) {
+                                $image = @imagecreatefromstring($imageContent);
+                                if ($image) {
+                                    $filename = "{$slug}.webp";
+                                    $savePath = storage_path("app/public/articles/{$filename}");
+                                    
+                                    if (!is_dir(storage_path('app/public/articles'))) {
+                                        mkdir(storage_path('app/public/articles'), 0755, true);
+                                    }
+                                    
+                                    imagewebp($image, $savePath, 80);
+                                    imagedestroy($image);
+                                    $localImagePath = "/storage/articles/{$filename}";
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            $this->warn("Failed to download or convert image for {$slug}: " . $e->getMessage());
+                            // Fallback to original URL if processing fails
+                            $localImagePath = $imageUrl; 
+                        }
+                    }
+
                     if (\App\Models\Article::where('slug', $slug)->exists()) {
                         continue;
                     }
@@ -103,7 +132,7 @@ class NewsSyncCommand extends Command
                         'body_en' => $feed->lang === 'en' ? $body : $body,
                         'title_np' => $feed->lang === 'np' ? $title : $title,
                         'body_np' => $feed->lang === 'np' ? $body : $body,
-                        'featured_image' => $imageUrl,
+                        'featured_image' => $localImagePath,
                     ];
 
                     \App\Models\Article::create($articleData);
