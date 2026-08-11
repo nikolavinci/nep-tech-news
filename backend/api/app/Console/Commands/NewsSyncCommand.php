@@ -37,7 +37,18 @@ class NewsSyncCommand extends Command
             $this->info("Fetching: {$feed['url']}");
             try {
                 $content = file_get_contents($feed['url']);
-                $xml = simplexml_load_string($content, 'SimpleXMLElement', LIBXML_NOCDATA);
+                // Fix unescaped ampersands which break simplexml
+                $content = preg_replace('/&(?!#?[a-z0-9]+;)/', '&amp;', $content);
+                
+                libxml_use_internal_errors(true);
+                $xml = simplexml_load_string($content, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NOERROR | LIBXML_NOWARNING);
+                
+                if ($xml === false) {
+                    $errors = libxml_get_errors();
+                    $this->error("Failed parsing XML: " . ($errors[0]->message ?? 'Unknown error'));
+                    libxml_clear_errors();
+                    continue;
+                }
                 
                 if (!isset($xml->channel->item)) continue;
                 
